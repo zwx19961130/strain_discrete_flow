@@ -146,11 +146,28 @@ for level = pyramid_levels:-1:1
 % image2_phase_horizontal = mean(image2_phase_horizontal, 3);
 
 
-% [J1,~,~,~,~,~,~] = steerGaussianFilter(I1, options.steerable.theta, options.steerable.w, 0);
-% [J2,~,~,~,~,~,~] = steerGaussianFilter(I2, options.steerable.theta, options.steerable.w, 0);
+
+[J1,~,~,~,~,~,~] = steerGaussianFilter(I1, options.steerable.theta, options.steerable.w, 0);
+[J2,~,~,~,~,~,~] = steerGaussianFilter(I2, options.steerable.theta, options.steerable.w, 0);
+
+image1_phase_horizontal = angle(J1);
+image2_phase_horizontal = angle(J2);
+
+
+
+% fft_I1 = fft2(I1);
+% phase_I1 = angle(fft_I1);
+% fft_I1 = exp(1i * phase_I1);
+% image1_phase_horizontal = real(ifft2(fft_I1));
 % 
-% image1_phase_horizontal = angle(J1);
-% image2_phase_horizontal = angle(J2);
+% 
+% fft_I2 = fft2(I2);
+% phase_I2 = angle(fft_I2);
+% fft_I2 = exp(1i * phase_I2);
+% image2_phase_horizontal = real(ifft2(fft_I2));
+
+
+
 
 
 % ksize = options.gabor.ksize;
@@ -230,16 +247,9 @@ for level = pyramid_levels:-1:1
 
 
 
-II = zeros(size(I1, 1), size(I1, 2), 2);
-II(:, :, 1) = I1;
-II(:, :, 2) = I2;
-P = optical_flow(II);
-image1_phase_horizontal = P(:, :, 1);
-image2_phase_horizontal = P(:, :, 2);
 
+[u, v, w, p] = champolle_pock_primal_dual_alg_max_iter(image1_phase_horizontal, image2_phase_horizontal, u, v, w, p, lambda, warps, max_iter, scale, beta, check);
 
-
-[u, v, w, p] = champolle_pock_primal_dual_alg(I1, I2, u, v, w, p, lambda, warps, max_iter, scale, beta, check);
 
   fprintf('=== Processing...%.2f/100\n', (pyramid_levels + 1 - level)/pyramid_levels*100);
   drawnow;
@@ -249,7 +259,7 @@ drawnow;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [u, v, w, p] = champolle_pock_primal_dual_alg(I1, I2, u, v, w, p, lambda, warps, maxits, scale, beta, check)
+function [u, v, w, p] = champolle_pock_primal_dual_alg_max_iter(I1, I2, u, v, w, p, lambda, warps, maxits, scale, beta, check)
 % [M N C] = size(I1);
 [n_row,n_col] = size(I1);
 N             = n_row * n_col;
@@ -291,19 +301,7 @@ for j = 1:warps
 
 
 
-    [~, ~, ~, I2_warped] = warping(I1, I2, vector_u0, vector_v0);
-%   ImgSeq = zeros(size(I_x, 1), size(I_y, 2), 3);
-% 
-%   ImgSeq(:, :, 1) = I_x;
-%   ImgSeq(:, :, 2) = I_y;
-%   ImgSeq(:, :, 3) = I_t;
-%   [I_x, I_y, I_t] = estimateOpticFlow2D(ImgSeq);
-
-
-II = zeros(size(I1, 1), size(I1, 2), 2);
-II(:, :, 1) = I1;
-II(:, :, 2) = I2;
-[I_x, I_y, I_t] = estimateOpticFlow2D(II);
+  [I_x, I_y, I_t, I2_warped] = warping(I1, I2, vector_u0, vector_v0);
 
 
 
@@ -471,9 +469,20 @@ I2_warped = interp2(I2,idxx,idyy,'cubic');
 I2_x_warped = interp2(I2,idxp,idyy,'cubic') - interp2(I2,idxm,idyy,'cubic');
 I2_y_warped = interp2(I2,idxx,idyp,'cubic') - interp2(I2,idxx,idym,'cubic');
 
+
+% 先求phase再加减
+[J,~,~,~,~,~,~] = steerGaussianFilter(I2_warped, options.steerable.theta, options.steerable.w, 0);
+I2_warped = angle(J);
+
+[J,~,~,~,~,~,~] = steerGaussianFilter(I2_x_warped, options.steerable.theta, options.steerable.w, 0);
+I2_x_warped = angle(J);
+
+[J,~,~,~,~,~,~] = steerGaussianFilter(I2_y_warped, options.steerable.theta, options.steerable.w, 0);
+I2_y_warped = angle(J);
+
 % use everage to improve accuracy
 I_x = I2_x_warped;
-I_y = I2_y_warped;
+I_y = I2_y_warped;  
 
 I_t = I2_warped  - I1;
 
@@ -483,7 +492,7 @@ I_y(m) = 0.0;
 I_t(m) = 0.0;
 
 %----------------------------------------
-function [u] = peakfilt(u);
+function [u] = peakfilt(u)
 u_ = medfilt2(u,[3 3],'symmetric');
 diff = abs(u-u_);
 v = mean(abs(u_(:)));

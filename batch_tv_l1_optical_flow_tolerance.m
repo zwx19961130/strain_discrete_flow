@@ -53,9 +53,6 @@ for i = 1:pyramid_levels
     for j=1:C
       I1_Pyramid{1,j} = I1(:,:,j);
       I2_Pyramid{1,j} = I2(:,:,j);
-
-      I1_Pyramid{1,j} = fftshift(fft2(I1_Pyramid{1,j}));
-      I2_Pyramid{1,j} = fftshift(fft2(I2_Pyramid{1,j}));
     end
   else
     for j=1:C
@@ -63,9 +60,6 @@ for i = 1:pyramid_levels
                                  [height_Pyramid{i} width_Pyramid{i}], 'bicubic');
       I2_Pyramid{i,j} = imresize(I2_Pyramid{i-1,j}, ...
                                  [height_Pyramid{i} width_Pyramid{i}], 'bicubic'); 
-
-      I1_Pyramid{1,j} = fftshift(fft2(I1_Pyramid{1,j}));
-      I2_Pyramid{1,j} = fftshift(fft2(I2_Pyramid{1,j}));
     end
   end
 end
@@ -107,6 +101,25 @@ for level = pyramid_levels:-1:1  %1--->2
   end
   
   fprintf('*** level = %d\n', level);
+
+
+
+% x1 = [0.00940000000000000	0.114800000000000	0.396400000000000	0.0601000000000000	0.921300000000000	0.0601000000000000	0.396400000000000	0.114800000000000	0.00940000000000000]';
+% x2 = [0.000800000000000000	0.0176000000000000	0.166000000000000	0.638300000000000	1	0.638300000000000	0.166000000000000	0.0480000000000000	0.000800000000000000]';
+% y2 = [0.000800000000000000	0.0176000000000000	0.166000000000000	0.638300000000000	1	0.638300000000000	0.166000000000000	0.0176000000000000	0.000800000000000000]';
+% y1 = [-0.00980000000000000	-0.0618000000000000	0.0998000000000000	0.755100000000000	0	-0.755100000000000	-0.0998000000000000	0.0618000000000000	0.00980000000000000]';
+% R_h = x2 * x1.';
+% I_h = y2 * y1.';
+
+
+
+% image1_horizontal = conv2(I1, R_h, 'same') + 1i * conv2(I1, I_h, 'same');
+% image1_phase_horizontal = angle(image1_horizontal);
+% 
+% 
+% 
+% image2_horizontal = conv2(I2, R_h, 'same') + 1i * conv2(I2, I_h, 'same');
+% image2_phase_horizontal = angle(image2_horizontal);
 
 
 

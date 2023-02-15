@@ -21,26 +21,28 @@ beta = 0.01;
 pyramid_level = 6;
 pyramid_factor = 0.5;
 
+blur_sigma = 0.1;
 
-for i1 = 1 : length(lambda)
+
+for i1 = 1 : length(blur_sigma)
 %         for i2 = 1 : length(w)
 %            for i4 = 1 : length(beta)
 %                for i5 = 1 : length(pyramid_level)
 %                    for i6 = 1 : length(pyramid_factor)
 
-
+ 
 %     [u, v] = batch_demo(ksize, deg2rad(theta),...
 %         gamma, sigma, gabor_lambda, psi,...
 %         lambda, beta, pyramid_level, pyramid_factor);
 
 [u, v] = batch_demo(theta, w, ...
-    lambda(i1), beta, pyramid_level, pyramid_factor);
+    lambda, beta, pyramid_level, pyramid_factor, blur_sigma(i1));
 u_ROI = u(21:520, 21:520); % 取出Region of Interest
 v_ROI = v(21:520, 21:520);
 
 
 u_hat = zeros(500, 500); % 新建u_hat矩阵，u_hat表示ground truth值
-u_hat(:, 250:end) =0.5;
+u_hat(:, 250:end) =16.5;
 v_hat = u_hat;
 
 
@@ -70,7 +72,7 @@ close all
 
 formatSpec = "%d\t%f\t" + ...
     "%d\t%f\t%d\t%f\t%f\n";
- fprintf(fileID, formatSpec, theta, w, lambda(i1), beta, pyramid_level, pyramid_factor, rmse);
+ fprintf(fileID, formatSpec, theta, w, lambda, beta, pyramid_level, pyramid_factor, rmse);
  
 %                    end
 %                end

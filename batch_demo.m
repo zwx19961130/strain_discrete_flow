@@ -1,6 +1,6 @@
 % function [u, v] = batch_demo(my_ksize, my_theta, my_gamma, my_sigma, my_gabor_lambda, my_psi, lambda, beta, my_pyramid_levels, my_pyramid_factor)
 function [u, v] = batch_demo(theta, w, ...
-    lambda, beta, my_pyramid_levels, my_pyramid_factor)
+    lambda, beta, my_pyramid_levels, my_pyramid_factor, blur_sigma)
     % load images
     %fpath = './frame10.png';
     %fpath = './Mars-1.jpg';
@@ -26,16 +26,17 @@ function [u, v] = batch_demo(theta, w, ...
     % tv-l1 flow (coarse-to-fine)
     options.lambda = lambda;
     options.beta   = beta;
-%     max_iter = 50;
-%     options.max_iter = round(max_iter);
+    max_iter = 50;
+    options.max_iter = round(max_iter);
     options.tolerance = 1e-3;
     check = 10;
     options.check = round(check);
     pyramid_levels = my_pyramid_levels;
     options.pyramid_levels = round(pyramid_levels);
     options.pyramid_factor = my_pyramid_factor;
-    warps = 1;
+    warps = 5;
     options.warps = round(warps);
+    options.blur_sigma = blur_sigma;
     
     
 %     options.gabor.ksize = my_ksize;
@@ -74,7 +75,7 @@ function [u, v] = batch_demo(theta, w, ...
 % img_src1 = image1_phase_horizontal;
 % img_src2 = image2_phase_horizontal;
     
-    [u, v, illumination] = batch_tv_l1_optical_flow_tolerance(img_src1, img_src2, options);
+    [u, v, illumination] = batch_tv_l1_optical_flow(img_src1, img_src2, options);
 
 
 %     II = zeros(540, 540, 2);
